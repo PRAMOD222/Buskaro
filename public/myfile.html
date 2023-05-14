@@ -1,0 +1,205 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Realtime GPS Tracker</title>
+    <link rel="stylesheet" href="map.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <style>
+        body,
+        html {
+            height: 100%;
+        }
+
+        .hr1 {
+            color: white;
+        }
+
+        #map-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #fff;
+            height: 50px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: inline-block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: #7e3af2;
+        }
+
+        .nav {
+            margin-left: auto;
+            display: flex;
+        }
+
+        .nav-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            color: rgb(147 51 234 );
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: rgb(107 33 168);
+        }
+
+        .icon {
+            margin-left: 1rem;
+            font-size: 1.5rem;
+            color: rgb(147 51 234 );
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .icon:hover {
+            color: #d25cf6;
+        }
+
+        .sticky {
+            position: sticky;
+            top: 0;
+        }
+
+        /* Mobile styles */
+
+        @media screen and (max-width: 767px) {
+            .container {
+                padding: 0 0;
+            }
+
+            .nav {
+                display: none;
+                flex-direction: column;
+                align-items: center;
+                margin-top: 5px;
+                width: 100%;
+            }
+
+            .nav-link {
+                margin-bottom: 5px;
+            }
+
+            .icon {
+                margin: 0;
+            }
+
+            .navbar.mobile .nav {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+        <header class="navbar">
+            <div class="container">
+                <a href="/" class="logo">
+                    <img src="/logo.png" alt="Picture of the author" width="180" height="20" />
+                </a>
+                <nav class="nav">
+                    <a href="/trackBus" class="nav-link">Track Your Bus</a>
+                    <a href="/myfile.html" class="nav-link">MapPage</a>
+                    <a href="/tickets" class="nav-link">Tickets</a>
+                    <a href="/contact" class="nav-link">Contact Us</a>
+                    <a href="/aboutUs" class="nav-link">About Us</a>
+                </nav>
+                <a href="/login" class="nav-link nav">Login</a>
+            </div>
+        </header>
+
+
+
+    <div id="map-canvas"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script>
+        window.lat = 37.7850;
+        window.lng = -122.4383;
+
+        var map;
+        var mark;
+        var lineCoords = [];
+
+        var initialize = function () {
+            map = new google.maps.Map(document.getElementById('map-canvas'), { center: { lat: lat, lng: lng }, zoom: 12 });
+            mark = new google.maps.Marker({ position: { lat: lat, lng: lng }, map: map });
+        };
+
+        const firebaseConfig = {
+
+            apiKey: "AIzaSyCOhugFrw0x3FDkkEIBXZ887xGQKdh9zjg",
+            authDomain: "buskaro-8ef18.firebaseapp.com",
+            databaseURL: "https://buskaro-8ef18-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "buskaro-8ef18",
+            storageBucket: "buskaro-8ef18.appspot.com",
+            messagingSenderId: "478314646703",
+            appId: "1:478314646703:web:c876e6dae84171d6f7985a"
+
+        };
+
+        window.initialize = initialize;
+
+        firebase.initializeApp(firebaseConfig);
+
+        var ref = firebase.database().ref();
+
+        ref.on("value", function (snapshot) {
+            var gps = snapshot.val();
+            console.log(gps.LAT);
+            console.log(gps.LNG);
+            lat = gps.LAT;
+            lng = gps.LNG;
+
+            map.setCenter({ lat: lat, lng: lng, alt: 0 });
+            mark.setPosition({ lat: lat, lng: lng, alt: 0 });
+
+            lineCoords.push(new google.maps.LatLng(lat, lng));
+
+            var lineCoordinatesPath = new google.maps.Polyline({
+                path: lineCoords,
+                geodesic: true,
+                strokeColor: '#2E10FF'
+            });
+
+            lineCoordinatesPath.setMap(map);
+        }, function (error) {
+            console.log("Error: " + error.code);
+        });
+
+    </script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyA7CKimlcHNiiRX2eBQegh6GctR2kU7LWg&callback=initialize"></script>
+</body>
+
+</html>
+<!-- AIzaSyBq7vqjGbynt_HRkh8qdbcobYoYi6JT0Kw -->
